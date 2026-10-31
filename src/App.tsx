@@ -47,11 +47,14 @@ function analyseResume(text:string,fileName:string):ResumeSummary {
 async function extractResumeText(file:File):Promise<string>{
  const buffer=await file.arrayBuffer();
  if(file.name.toLowerCase().endsWith(".pdf")){
+   const pdfjsLib=await import("pdfjs-dist");
+   const {default:pdfWorker}=await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
+   pdfjsLib.GlobalWorkerOptions.workerSrc=pdfWorker;
   const pdf=await pdfjsLib.getDocument({data:new Uint8Array(buffer)}).promise;
   const pages:string[]=[];
   for(let pageNo=1;pageNo<=pdf.numPages;pageNo++){
    const page=await pdf.getPage(pageNo);
-   const content=await page.getTextContent();
+   return pages.join("\n");
    pages.push(content.items.map(item=>"str" in item?item.str:"").join(" "));
   }
   return pages.join("\\n");
@@ -63,7 +66,7 @@ async function extractResumeText(file:File):Promise<string>{
   const doc=new DOMParser().parseFromString(xml,"application/xml");
   if(doc.querySelector("parsererror"))throw new Error("The DOCX document appears to be damaged.");
   const ns="http://schemas.openxmlformats.org/wordprocessingml/2006/main";
-  return Array.from(doc.getElementsByTagNameNS(ns,"p")).map(p=>Array.from(p.getElementsByTagNameNS(ns,"t")).map(t=>t.textContent||"").join("")).filter(Boolean).join("\\n");
+  return Array.from(doc.getElementsByTagNameNS(ns,"p")).map(p=>Array.from(p.getElementsByTagNameNS(ns,"t")).map(t=>t.textContent||"").join("")).filter(Boolean).join("\n");
  }
  throw new Error("Please upload a PDF or DOCX file.");
 }
