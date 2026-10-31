@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Activity, ArrowUpRight, BriefcaseBusiness, ChevronDown, CircleHelp, FileSearch, Globe2, LayoutDashboard, ListChecks, LogOut, Mail, MapPin, Plus, Search, Settings2, ShieldCheck, Sparkles, Target, Upload, X } from "lucide-react";
+import { Activity, ArrowUpRight, BriefcaseBusiness, CircleHelp, FileSearch, Globe2, LayoutDashboard, ListChecks, LogOut, Mail, MapPin, Plus, Search, Settings2, ShieldCheck, Sparkles, Target, Upload, X } from "lucide-react";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 
 type Job = { id:string; company:string; title:string; location:string; work_mode:string; source:string; status:string; match_score:number|null; posted_date:string|null; salary_range:string|null; url:string };
