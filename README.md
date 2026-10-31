@@ -38,7 +38,7 @@ The existing project schema contains candidate_profiles, jobs, applications, app
 3. Configure Supabase Auth providers and redirect URLs for local and deployed origins.
 4. Do not expose the Supabase service_role key in Vite/browser variables.
 
-The current frontend only loads candidate and job rows after an authenticated session exists. Demo sample cards are local presentation data and are not inserted into Supabase.
+The frontend uses email magic-link sign-in, then loads candidate, job and application rows only after an authenticated session exists. The first authenticated session creates a candidate profile using the setup defaults. Demo sample cards are local presentation data and are not inserted into Supabase.
 
 ## Render deployment
 
