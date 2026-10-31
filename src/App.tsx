@@ -1,11 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Activity, ArrowUpRight, BriefcaseBusiness, CircleHelp, FileSearch, Globe2, LayoutDashboard, ListChecks, LogOut, Mail, MapPin, Plus, Search, Settings2, ShieldCheck, Sparkles, Target, Upload, X } from "lucide-react";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
-import * as pdfjsLib from "pdfjs-dist";
-import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import JSZip from "jszip";
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 type Job = { id:string; company:string; title:string; location:string; work_mode:string; source:string; status:string; match_score:number|null; posted_date:string|null; salary_range:string|null; url:string };
 type Application = { id:string; status:string; job:Job };
