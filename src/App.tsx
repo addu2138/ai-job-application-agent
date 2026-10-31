@@ -23,7 +23,7 @@ function mapDbJob(row:any):Job {
  const min=typeof row.salary_min_inr==="number"?row.salary_min_inr/100000:null;
  const max=typeof row.salary_max_inr==="number"?row.salary_max_inr/100000:null;
  const salary=min!==null&&max!==null?`₹${min.toFixed(1)}–${max.toFixed(1)} LPA`:min!==null?`From ₹${min.toFixed(1)} LPA`:max!==null?`Up to ₹${max.toFixed(1)} LPA`:"Not disclosed";
- return {id:row.id,company:row.company_name||"Company not specified",title:row.job_title||"Untitled role",location:row.location||"Location not specified",work_mode:row.work_mode||"Not specified",source:row.source||"Unknown",status:row.status||"new",match_score:row.match_score===null?null:Number(row.match_score),posted_date:row.posted_at?new Date(row.posted_at).toLocaleDateString():row.discovered_at?new Date(row.discovered_at).toLocaleDateString():null,salary_range:salary,url:row.job_url||"#",description:row.description||"",required_skills:row.required_skills||[]};
+ return {id:row.id,company:row.company_name||"Company not specified",title:row.job_title||"Untitled role",location:row.location||"Location not specified",work_mode:row.work_mode||"Not specified",source:row.source||"Unknown",status:row.status||"new",match_score:row.match_score===null?null:Number(row.match_score),posted_date:row.posted_at?new Date(row.posted_at).toISOString():null,salary_range:salary,url:row.job_url||"#",description:row.description||"",required_skills:row.required_skills||[]};
 }
 function profileSeed(user:any):CandidateProfile {
  return {email:user.email||"adarshjaiswal470@gmail.com",years_experience:4,current_ctc_inr:528000,expected_ctc_min_inr:1000000,expected_ctc_max_inr:1200000,notice_period_days:90,preferred_locations:["Delhi NCR","Noida","Gurugram","Remote"],preferred_work_modes:["remote","hybrid","onsite"],target_roles:["Data Analyst","HR Analytics Analyst","People Analytics Analyst","Compensation & Benefits Analyst","Rewards Analyst","Reporting Analyst","Business Analyst"]};
@@ -128,7 +128,7 @@ export default function App(){
 
  const scoredJobs=useMemo(()=>jobs.map(j=>({...j,match_score:calculateMatch(j,resumeParsed?.text||profile?.resume_text||"",profile?.skills||[])})),[jobs,resumeParsed,profile]);
  const filtered=useMemo(()=>scoredJobs.filter(j=>(filter==="All"||j.status===filter)&&[j.company,j.title,j.location].join(" ").toLowerCase().includes(query.toLowerCase())&&(recency==="All"||(j.posted_date&&Number.isFinite(Date.parse(j.posted_date))&&Date.parse(j.posted_date)>=Date.now()-Number(recency)*86400000))),[scoredJobs,filter,query,recency]);
- const counts={total:jobs.length,matched:jobs.filter(j=>(j.match_score||0)>=80).length,applied:jobs.filter(j=>j.status==="applied").length,interview:applications.filter(a=>a.status==="interview").length};
+ const counts={total:jobs.length,matched:scoredJobs.filter(j=>(j.match_score||0)>=80).length,applied:jobs.filter(j=>j.status==="applied").length,interview:applications.filter(a=>a.status==="interview").length};
 
  async function sendMagicLink(){
   if(!supabase)return;
@@ -217,7 +217,7 @@ function portalSearchLinks(days:string,profile:CandidateProfile|null){
  const googleAge=days==="7"?"qdr:d7":days==="30"?"qdr:m1":"";
  const links=[
   ["LinkedIn",`https://www.linkedin.com/jobs/search/?keywords=${q}&location=${loc}${age?"&f_TPR=r"+(Number(age)*86400):""}`],
-  ["Naukri",`https://www.naukri.com/`],
+  ["Naukri",`https://www.google.com/search?q=${encodeURIComponent("site:naukri.com "+roles+" jobs "+locations)}${googleAge?"&tbs="+googleAge:""}`],
   ["Indeed",`https://in.indeed.com/jobs?q=${q}&l=${loc}${age?"&fromage="+age:""}`],
   ["Foundit",`https://www.foundit.in/srp/results?query=${q}&locations=${loc}`],
   ["Company career pages",`https://www.google.com/search?q=${encodeURIComponent(roles+" jobs "+locations+" site:careers OR site:jobs")}${googleAge?"&tbs="+googleAge:""}`]
