@@ -8,7 +8,8 @@ A candidate-controlled workspace to collect job leads, compare them with a candi
 - Job lead list with search and status filters.
 - Application status tracking.
 - Candidate profile defaults based on the initial project setup.
-- Resume file picker (parsing/tailoring is not yet implemented).
+- Browser-side PDF/DOCX resume text extraction with contact, experience and skills detection.
+- Extracted resume text and detected fields saved to the authenticated candidate profile.
 - Supabase client wiring using browser-safe publishable/anon credentials.
 - Render deployment manifest and health endpoint.
 
@@ -38,7 +39,7 @@ The existing project schema contains candidate_profiles, jobs, applications, app
 3. Configure Supabase Auth providers and redirect URLs for local and deployed origins.
 4. Do not expose the Supabase service_role key in Vite/browser variables.
 
-The frontend uses email magic-link sign-in, then loads candidate, job and application rows only after an authenticated session exists. The first authenticated session creates a candidate profile using the setup defaults. Demo sample cards are local presentation data and are not inserted into Supabase.
+The frontend uses email magic-link sign-in, then loads candidate, job and application rows only after an authenticated session exists. Resume text and detected fields are stored in the user's RLS-protected candidate profile. The first authenticated session creates a candidate profile using the setup defaults. Demo sample cards are local presentation data and are not inserted into Supabase.
 
 ## Render deployment
 
@@ -51,4 +52,4 @@ Vite embeds `VITE_*` variables into the client bundle, so only the public publis
 
 ## Important limitations — not yet production automation
 
-Job discovery integrations, scoring from an uploaded resume, PDF/DOCX parsing, AI-generated tailored resumes and answers, portal-specific form adapters, application submission, CAPTCHA/OTP handling, confirmation verification and email notifications are not implemented yet. The interface does not claim to submit applications. Any future submission flow must respect each site's terms, rate limits, user review and anti-bot controls; no CAPTCHA/OTP or access-control bypass is supported.
+Job discovery integrations, advanced semantic resume-to-job scoring, AI-generated tailored resumes and answers, portal-specific form adapters, application submission, CAPTCHA/OTP handling, confirmation verification and email notifications are not implemented yet. PDF/DOCX text extraction runs in the browser; the original file is not uploaded. Scanned/image-only PDFs need OCR and are not parsed by this version. The interface does not claim to submit applications. Any future submission flow must respect each site's terms, rate limits, user review and anti-bot controls; no CAPTCHA/OTP or access-control bypass is supported.
