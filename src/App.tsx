@@ -38,15 +38,14 @@ const SKILL_TERMS = ["Excel","Advanced Excel","SQL","Python","R","Power BI","Tab
 function analyseResume(text:string,fileName:string):ResumeSummary {
  const clean=text.replace(/\\u0000/g," ").replace(/[ \\t]+/g," ").replace(/\\r/g,"\\n").replace(/\\n{3,}/g,"\\n\\n").trim();
  const lines=clean.split("\\n").map(x=>x.trim()).filter(Boolean);
- const email=clean.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/i)?.[0]||null;
- const phone=clean.match(/(?:\\+91[\\s-]?)?[6-9]\\d{9}\\b/)?.[0]||null;
- const expMatches=[...clean.matchAll(/(?:total\\s+)?(?:professional\\s+)?experience\\s*[:–-]?\\s*(\\d+(?:\\.\\d+)?)\\s*\\+?\\s*years?/ig),...clean.matchAll(/(\\d+(?:\\.\\d+)?)\\s*\\+?\\s*years?\\s+(?:of\\s+)?experience/ig)];
+ const email=clean.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0]||null;
+ const phone=clean.match(/(?:\+91[\s-]?)?[6-9]\d{9}\b/)?.[0]||null;
+ const expMatches=[...clean.matchAll(/(?:total\s+)?(?:professional\s+)?experience\s*[:–-]?\s*(\d+(?:\.\d+)?)\s*\+?\s*years?/ig),...clean.matchAll(/(\d+(?:\.\d+)?)\s*\+?\s*years?\s+(?:of\s+)?experience/ig)];
  const experience=expMatches.length?Math.max(...expMatches.map(m=>Number(m[1])).filter(n=>n>0&&n<60)):null;
  const skip=/^(resume|curriculum vitae|cv|profile|summary|professional summary|career objective|contact|contact details)$/i;
- const name=lines.slice(0,12).find(line=>line.length>3&&line.length<65&&!skip.test(line)&&!/@|https?:|\\d{5,}|linkedin|github/i.test(line)&&/^[A-Za-z][A-Za-z .'-]+$/.test(line))||null;
+ const name=lines.slice(0,12).find(line=>line.length>3&&line.length<65&&!skip.test(line)&&!/@|https?:|\d{5,}|linkedin|github/i.test(line)&&/^[A-Za-z][A-Za-z .'-]+$/.test(line))||null;
  const lower=clean.toLowerCase();
- const skills=SKILL_TERMS.filter(skill=>new RegExp(skill.replace(/[.*+?^${}()|[\\]\\\\]/g,"\\\\function moneyLpa(value?:number|null){return value==null?"Not added":`₹${(value/100000).toFixed(2)} LPA`;}
-"),"i").test(lower));
+ const skills=SKILL_TERMS.filter(skill=>lower.includes(skill.toLowerCase()));
  return {fileName,text:clean.slice(0,120000),name,email,phone,experience,skills,parsedAt:new Date().toISOString()};
 }
 async function extractResumeText(file:File):Promise<string>{
