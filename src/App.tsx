@@ -14,7 +14,7 @@ const defaults = [
 const nav: {name:Tab;icon:typeof LayoutDashboard}[] = [{name:"Overview",icon:LayoutDashboard},{name:"Find jobs",icon:FileSearch},{name:"Applications",icon:ListChecks},{name:"Profile",icon:Settings2}];
 
 export default function App(){
- const [tab,setTab]=useState<Tab>("Overview"),[jobs,setJobs]=useState<Job[]>(defaults),[query,setQuery]=useState(""),[filter,setFilter]=useState("All"),[profile,setProfile]=useState<any>(null),[uploadName,setUploadName]=useState(""),[notice,setNotice]=useState("");
+ const [tab,setTab]=useState<Tab>("Overview"),[jobs,setJobs]=useState<Job[]>(defaults),[query,setQuery]=useState(""),[filter,setFilter]=useState("All"),[,setProfile]=useState<any>(null),[uploadName,setUploadName]=useState(""),[notice,setNotice]=useState("");
  useEffect(()=>{ if(!supabase)return; (async()=>{const {data:auth}=await supabase.auth.getUser(); if(!auth.user)return; const {data:p}=await supabase.from("candidate_profiles").select("*").eq("user_id",auth.user.id).maybeSingle();setProfile(p);const {data:j}=await supabase.from("jobs").select("*").order("created_at",{ascending:false}).limit(100);if(j?.length)setJobs(j as Job[]);})();},[]);
  const filtered=useMemo(()=>jobs.filter(j=>(filter==="All"||j.status===filter)&&[j.company,j.title,j.location].join(" ").toLowerCase().includes(query.toLowerCase())),[jobs,filter,query]);
  const counts={total:jobs.length,matched:jobs.filter(j=>(j.match_score||0)>=80).length,applied:jobs.filter(j=>["applied","interview","offer"].includes(j.status)).length,interview:jobs.filter(j=>j.status==="interview").length};
