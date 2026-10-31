@@ -47,17 +47,17 @@ function analyseResume(text:string,fileName:string):ResumeSummary {
 async function extractResumeText(file:File):Promise<string>{
  const buffer=await file.arrayBuffer();
  if(file.name.toLowerCase().endsWith(".pdf")){
-   const pdfjsLib=await import("pdfjs-dist");
-   const {default:pdfWorker}=await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
-   pdfjsLib.GlobalWorkerOptions.workerSrc=pdfWorker;
+  const pdfjsLib=await import("pdfjs-dist");
+  const {default:pdfWorker}=await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
+  pdfjsLib.GlobalWorkerOptions.workerSrc=pdfWorker;
   const pdf=await pdfjsLib.getDocument({data:new Uint8Array(buffer)}).promise;
   const pages:string[]=[];
   for(let pageNo=1;pageNo<=pdf.numPages;pageNo++){
    const page=await pdf.getPage(pageNo);
-   return pages.join("\n");
+   const content=await page.getTextContent();
    pages.push(content.items.map(item=>"str" in item?item.str:"").join(" "));
   }
-  return pages.join("\\n");
+  return pages.join("\n");
  }
  if(file.name.toLowerCase().endsWith(".docx")){
   const zip=await JSZip.loadAsync(buffer);
@@ -70,7 +70,6 @@ async function extractResumeText(file:File):Promise<string>{
  }
  throw new Error("Please upload a PDF or DOCX file.");
 }
-
 export default function App(){
  const [tab,setTab]=useState<Tab>("Overview");
  const [jobs,setJobs]=useState<Job[]>(isSupabaseConfigured?[]:demoJobs);
