@@ -16,7 +16,7 @@ const dateValue = (value) => {
   const parsed = Date.parse(value);
   return Number.isFinite(parsed) ? new Date(parsed).toISOString() : null;
 };
-const withinDays = (date, days) => !days || !date || Date.now() - Date.parse(date) <= days * 86400000;
+const withinDays = (date, days) => !days || Boolean(date && Number.isFinite(Date.parse(date)) && Date.now() - Date.parse(date) <= days * 86400000);
 
 app.get("/api/jobs", async (req, res) => {
   const query = clean(req.query.query);
@@ -29,9 +29,9 @@ app.get("/api/jobs", async (req, res) => {
   const errors = [];
 
   try {
-    const [arbeitnowResult, remotiveResult] = await Promise.allSettled([
+    const [arbeitnowResult, ...remotiveResults] = await Promise.allSettled([
       fetch("https://www.arbeitnow.com/api/job-board-api?page=1", { headers: { accept: "application/json" }, signal: AbortSignal.timeout(12000) }),
-      fetch(`https://remotive.com/api/remote-jobs?search=${encodeURIComponent(terms.slice(0, 3).join(" "))}`, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(12000) })
+      ...terms.slice(0, 5).map(term => fetch(`https://remotive.com/api/remote-jobs?search=${encodeURIComponent(term)}`, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(12000) }))
     ]);
 
     if (arbeitnowResult.status === "fulfilled" && arbeitnowResult.value.ok) {
@@ -57,7 +57,10 @@ app.get("/api/jobs", async (req, res) => {
       errors.push("Arbeitnow feed unavailable");
     }
 
-    if (remotiveResult.status === "fulfilled" && remotiveResult.value.ok) {
+    let remotiveAvailable = false;
+    for (const remotiveResult of remotiveResults) {
+      if (remotiveResult.status !== "fulfilled" || !remotiveResult.value.ok) continue;
+      remotiveAvailable = true;
       const payload = await remotiveResult.value.json();
       for (const item of (payload.jobs || [])) {
         const job = {
@@ -76,9 +79,8 @@ app.get("/api/jobs", async (req, res) => {
         };
         if (job.title && job.url && withinDays(job.posted_at, days) && matchesQuery(job) && matchesLocation(job)) results.push(job);
       }
-    } else {
-      errors.push("Remotive feed unavailable");
     }
+    if (!remotiveAvailable) errors.push("Remotive feed unavailable");
   } catch (error) {
     errors.push(error instanceof Error ? error.message : "Job sources could not be reached");
   }
