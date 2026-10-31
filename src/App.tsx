@@ -202,7 +202,7 @@ export default function App(){
 function calculateMatch(job:Job,resumeText:string,profileSkills:string[]=[]):number|null{
  const text=(resumeText+" "+profileSkills.join(" ")).toLowerCase();
  if(!text.trim())return job.match_score??null;
- const terms=[...new Set([...(job.required_skills||[]),...job.title.toLowerCase().split(/[^a-z0-9+#&]+/).filter(x=>x.length>2),...(job.description||"").toLowerCase().match(/\\b(?:sql|python|excel|power bi|tableau|hr analytics|people analytics|compensation|rewards|vba|alteryx|workday|successfactors|statistics|dashboard|data analysis|reporting|benefits|salary benchmarking)\\b/g)||[]])];
+ const terms=[...new Set([...(job.required_skills||[]),...job.title.toLowerCase().split(/[^a-z0-9+#&]+/).filter(x=>x.length>2),...(job.description||"").toLowerCase().match(/\b(?:sql|python|excel|power bi|tableau|hr analytics|people analytics|compensation|rewards|vba|alteryx|workday|successfactors|statistics|dashboard|data analysis|reporting|benefits|salary benchmarking)\b/g)||[]])];
  const useful=terms.filter(x=>x.length>2);
  if(!useful.length)return null;
  const matched=useful.filter(x=>text.includes(x)).length;
