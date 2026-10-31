@@ -36,8 +36,8 @@ function moneyLpa(value?:number|null){return value==null?"Not added":`₹${(valu
 
 const SKILL_TERMS = ["Excel","Advanced Excel","SQL","Python","R","Power BI","Tableau","Alteryx","VBA","Power Query","Power Pivot","Statistics","Data Analysis","Data Visualization","People Analytics","HR Analytics","Compensation & Benefits","Compensation Analytics","Benefits Analytics","Rewards","Job Evaluation","Salary Benchmarking","Workforce Analytics","Dashboarding","ETL","Databricks","Azure","AWS","Snowflake","BigQuery","PostgreSQL","MySQL","Machine Learning","Predictive Analytics","A/B Testing","Jira","SAP SuccessFactors","Workday","SuccessFactors","Survey Administration"];
 function analyseResume(text:string,fileName:string):ResumeSummary {
- const clean=text.replace(/\\u0000/g," ").replace(/[ \\t]+/g," ").replace(/\\r/g,"\\n").replace(/\\n{3,}/g,"\\n\\n").trim();
- const lines=clean.split("\\n").map(x=>x.trim()).filter(Boolean);
+ const clean=text.replace(/\u0000/g," ").replace(/[ \t]+/g," ").replace(/\r/g,"\n").replace(/\n{3,}/g,"\n\n").trim();
+ const lines=clean.split("\n").map(x=>x.trim()).filter(Boolean);
  const email=clean.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0]||null;
  const phone=clean.match(/(?:\+91[\s-]?)?[6-9]\d{9}\b/)?.[0]||null;
  const expMatches=[...clean.matchAll(/(?:total\s+)?(?:professional\s+)?experience\s*[:–-]?\s*(\d+(?:\.\d+)?)\s*\+?\s*years?/ig),...clean.matchAll(/(\d+(?:\.\d+)?)\s*\+?\s*years?\s+(?:of\s+)?experience/ig)];
