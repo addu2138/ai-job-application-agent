@@ -264,22 +264,6 @@ function calculateMatch(job:Job,resumeText:string,profileSkills:string[]=[]):num
  const matched=useful.filter(x=>text.includes(x)).length;
  return Math.round(100*matched/useful.length);
 }
-function portalSearchLinks(days:string,profile:CandidateProfile|null){
- const roles=(profile?.target_roles?.length?profile.target_roles:["Data Analyst","HR Analytics Analyst","People Analytics Analyst","Compensation & Benefits Analyst","Rewards Analyst"]).slice(0,4).join(" OR ");
- const locations=(profile?.preferred_locations?.length?profile.preferred_locations:["Delhi NCR","Noida","Gurugram","Remote"]).join(" OR ");
- const q=encodeURIComponent(roles);
- const loc=encodeURIComponent(locations);
- const age=days==="7"?"7":days==="30"?"30":"";
- const googleAge=days==="7"?"qdr:d7":days==="30"?"qdr:m1":"";
- const links=[
-  ["LinkedIn",`https://www.linkedin.com/jobs/search/?keywords=${q}&location=${loc}${age?"&f_TPR=r"+(Number(age)*86400):""}`],
-  ["Naukri",`https://www.google.com/search?q=${encodeURIComponent("site:naukri.com "+roles+" jobs "+locations)}${googleAge?"&tbs="+googleAge:""}`],
-  ["Indeed",`https://in.indeed.com/jobs?q=${q}&l=${loc}${age?"&fromage="+age:""}`],
-  ["Foundit",`https://www.foundit.in/srp/results?query=${q}&locations=${loc}`],
-  ["Company career pages",`https://www.google.com/search?q=${encodeURIComponent(roles+" jobs "+locations+" site:careers OR site:jobs")}${googleAge?"&tbs="+googleAge:""}`]
- ];
- return links.map(([name,url])=><a key={name} href={url} target="_blank" rel="noreferrer">{name} ↗</a>);
-}
 function Stat({icon:Icon,label,value,note}:{icon:any;label:string;value:number;note:string}){return <div className="stat"><div className="stat-top"><span>{label}</span><Icon size={18}/></div><strong>{value.toString().padStart(2,"0")}</strong><small>{note}</small></div>}
 function JobList({jobs,updateStatus}:{jobs:Job[];updateStatus:(job:Job,status:string)=>void}){if(!jobs.length)return <div className="empty"><FileSearch size={25}/><b>No jobs here yet</b><span>Add a lead or connect a job source to get started.</span></div>;return <div className="job-list">{jobs.map(j=><article className="job" key={j.id}><div className="company-mark">{j.company.slice(0,1).toUpperCase()}</div><div className="job-detail"><b>{j.title}</b><span>{j.company} <i>·</i> {j.location}</span><div className="job-meta"><span><Globe2 size={12}/>{j.source}</span><span><MapPin size={12}/>{j.work_mode||"Not specified"}</span>{j.salary_range&&<span>{j.salary_range}</span>}</div></div><div className="score"><strong>{j.match_score??"—"}{j.match_score!==null?"%":""}</strong><small>Match</small></div><select aria-label="Update job status" value={j.status} onChange={e=>updateStatus(j,e.target.value)}>{jobStatuses.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select><a className="open-link" href={j.url||"#"} target="_blank" rel="noreferrer" aria-label="Open job"><ArrowUpRight size={17}/></a></article>)}</div>}
 
