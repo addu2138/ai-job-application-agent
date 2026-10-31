@@ -4,7 +4,8 @@ import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import JSZip from "jszip";
 
 type Job = { id:string; company:string; title:string; location:string; work_mode:string; source:string; status:string; match_score:number|null; posted_date:string|null; salary_range:string|null; url:string; description?:string|null; required_skills?:string[]|null };
-type Application = { id:string; status:string; job:Job };\ntype DiscoveredJob = Job & { source_job_id:string; employment_type?:string; tags?:string[] };
+type Application = { id:string; status:string; job:Job };
+type DiscoveredJob = Job & { source_job_id:string; employment_type?:string; tags?:string[] };
 type CandidateProfile = { full_name?:string|null; email?:string|null; years_experience?:number|null; current_ctc_inr?:number|null; expected_ctc_min_inr?:number|null; expected_ctc_max_inr?:number|null; notice_period_days?:number|null; preferred_locations?:string[]; preferred_work_modes?:string[]; target_roles?:string[]; skills?:string[]; resume_text?:string|null; resume_file_name?:string|null; resume_parsed_at?:string|null };
 type ResumeSummary = { fileName:string; text:string; name:string|null; email:string|null; phone:string|null; experience:number|null; skills:string[]; parsedAt:string };
 type Tab = "Overview" | "Find jobs" | "Applications" | "Profile";
@@ -32,8 +33,13 @@ function moneyLpa(value?:number|null){return value==null?"Not added":`₹${(valu
 
 const SKILL_TERMS = ["Excel","Advanced Excel","SQL","Python","R","Power BI","Tableau","Alteryx","VBA","Power Query","Power Pivot","Statistics","Data Analysis","Data Visualization","People Analytics","HR Analytics","Compensation & Benefits","Compensation Analytics","Benefits Analytics","Rewards","Job Evaluation","Salary Benchmarking","Workforce Analytics","Dashboarding","ETL","Databricks","Azure","AWS","Snowflake","BigQuery","PostgreSQL","MySQL","Machine Learning","Predictive Analytics","A/B Testing","Jira","SAP SuccessFactors","Workday","SuccessFactors","Survey Administration"];
 function analyseResume(text:string,fileName:string):ResumeSummary {
- const clean=text.replace(/\u0000/g," ").replace(/[ \t]+/g," ").replace(/\r/g,"\n").replace(/\n{3,}/g,"\n\n").trim();
- const lines=clean.split("\n").map(x=>x.trim()).filter(Boolean);
+ const clean=text.replace(/\u0000/g," ").replace(/[ \t]+/g," ").replace(/\r/g,"
+").replace(/
+{3,}/g,"
+
+").trim();
+ const lines=clean.split("
+").map(x=>x.trim()).filter(Boolean);
  const email=clean.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0]||null;
  const phone=clean.match(/(?:\+91[\s-]?)?[6-9]\d{9}\b/)?.[0]||null;
  const expMatches=[...clean.matchAll(/(?:total\s+)?(?:professional\s+)?experience\s*[:–-]?\s*(\d+(?:\.\d+)?)\s*\+?\s*years?/ig),...clean.matchAll(/(\d+(?:\.\d+)?)\s*\+?\s*years?\s+(?:of\s+)?experience/ig)];
@@ -57,7 +63,8 @@ async function extractResumeText(file:File):Promise<string>{
    const content=await page.getTextContent();
    pages.push(content.items.map(item=>"str" in item?item.str:"").join(" "));
   }
-  return pages.join("\n");
+  return pages.join("
+");
  }
  if(file.name.toLowerCase().endsWith(".docx")){
   const zip=await JSZip.loadAsync(buffer);
@@ -66,7 +73,8 @@ async function extractResumeText(file:File):Promise<string>{
   const doc=new DOMParser().parseFromString(xml,"application/xml");
   if(doc.querySelector("parsererror"))throw new Error("The DOCX document appears to be damaged.");
   const ns="http://schemas.openxmlformats.org/wordprocessingml/2006/main";
-  return Array.from(doc.getElementsByTagNameNS(ns,"p")).map(p=>Array.from(p.getElementsByTagNameNS(ns,"t")).map(t=>t.textContent||"").join("")).filter(Boolean).join("\n");
+  return Array.from(doc.getElementsByTagNameNS(ns,"p")).map(p=>Array.from(p.getElementsByTagNameNS(ns,"t")).map(t=>t.textContent||"").join("")).filter(Boolean).join("
+");
  }
  throw new Error("Please upload a PDF or DOCX file.");
 }
@@ -92,7 +100,11 @@ export default function App(){
  const [newLocation,setNewLocation]=useState("Delhi NCR");
  const [newUrl,setNewUrl]=useState("");
  const [newDescription,setNewDescription]=useState("");
- const [recency,setRecency]=useState("30");\n const [externalJobs,setExternalJobs]=useState<DiscoveredJob[]>([]);\n const [searchBusy,setSearchBusy]=useState(false);\n const [searchMessage,setSearchMessage]=useState("");\n const [savedExternalIds,setSavedExternalIds]=useState<string[]>([]);
+ const [recency,setRecency]=useState("30");
+ const [externalJobs,setExternalJobs]=useState<DiscoveredJob[]>([]);
+ const [searchBusy,setSearchBusy]=useState(false);
+ const [searchMessage,setSearchMessage]=useState("");
+ const [savedExternalIds,setSavedExternalIds]=useState<string[]>([]);
 
  useEffect(()=>{
   if(!supabase)return;
@@ -278,6 +290,7 @@ function ExternalJobList({jobs,savedIds,resumeText,profileSkills,onSave}:{jobs:D
   return <article className="job discovered-job" key={job.id}><div className="company-mark">{job.company.slice(0,1).toUpperCase()}</div><div className="job-detail"><b>{job.title}</b><span>{job.company} <i>·</i> {job.location}</span><div className="job-meta"><span><Globe2 size={12}/>{job.source}</span><span><MapPin size={12}/>{job.work_mode}</span>{job.posted_date&&<span>{new Date(job.posted_date).toLocaleDateString()}</span>}{job.employment_type&&<span>{job.employment_type}</span>}</div></div><div className="score"><strong>{score??"—"}{score!==null?"%":""}</strong><small>Keyword match</small></div><button className="secondary save-discovered" disabled={saved} onClick={()=>onSave(job)}>{saved?"Saved":"Save job"}</button><a className="open-link" href={job.url} target="_blank" rel="noreferrer" aria-label="Open original job posting"><ArrowUpRight size={17}/></a></article>;
  })}</div>;
 }
-\nfunction ApplicationList({applications,updateStatus}:{applications:Application[];updateStatus:(app:Application,status:string)=>void}){if(!applications.length)return <div className="empty"><ListChecks size={25}/><b>No applications tracked yet</b><span>Mark a saved job as Applied to add it to this tracker.</span></div>;return <div className="job-list">{applications.map(a=><article className="job" key={a.id}><div className="company-mark">{a.job.company.slice(0,1).toUpperCase()}</div><div className="job-detail"><b>{a.job.title}</b><span>{a.job.company} <i>·</i> {a.job.location}</span><div className="job-meta"><span>{a.job.source}</span><span>Application tracker</span></div></div><select aria-label="Update application status" value={a.status} onChange={e=>updateStatus(a,e.target.value)}>{appStatuses.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select><a className="open-link" href={a.job.url||"#"} target="_blank" rel="noreferrer" aria-label="Open job"><ArrowUpRight size={17}/></a></article>)}</div>}
+
+function ApplicationList({applications,updateStatus}:{applications:Application[];updateStatus:(app:Application,status:string)=>void}){if(!applications.length)return <div className="empty"><ListChecks size={25}/><b>No applications tracked yet</b><span>Mark a saved job as Applied to add it to this tracker.</span></div>;return <div className="job-list">{applications.map(a=><article className="job" key={a.id}><div className="company-mark">{a.job.company.slice(0,1).toUpperCase()}</div><div className="job-detail"><b>{a.job.title}</b><span>{a.job.company} <i>·</i> {a.job.location}</span><div className="job-meta"><span>{a.job.source}</span><span>Application tracker</span></div></div><select aria-label="Update application status" value={a.status} onChange={e=>updateStatus(a,e.target.value)}>{appStatuses.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select><a className="open-link" href={a.job.url||"#"} target="_blank" rel="noreferrer" aria-label="Open job"><ArrowUpRight size={17}/></a></article>)}</div>}
 function Step({n,title,text}:{n:string;title:string;text:string}){return <div className="step"><span>{n}</span><b>{title}</b><small>{text}</small></div>}
 function ProfileField({label,value}:{label:string;value:string}){return <div className="profile-field"><span>{label}</span><b>{value}</b></div>}
