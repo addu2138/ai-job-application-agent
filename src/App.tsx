@@ -172,7 +172,7 @@ export default function App(){
     status:"new",
     match_score:null,
     posted_date:item.posted_at||null,
-    salary_range:"Not disclosed",
+    salary_range:item.salary||"Not disclosed",
     url:item.url||"#",
     description:item.description||"",
     required_skills:item.tags||[],
